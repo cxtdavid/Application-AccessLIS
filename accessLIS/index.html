@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AccessLIS</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ===================== -->
+<!-- SCHERMATA LOGIN INIZIALE (fuori dall'app, appare prima di tutto) -->
+<!-- ===================== -->
+<div id="login-screen" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#fff; z-index:9999; overflow-y:auto; max-width:480px; margin:0 auto;">
+
+  <!-- LOGIN -->
+  <div id="view-login">
+    <div class="auth-header">
+      <div style="font-size:56px;margin-bottom:8px;">🤟</div>
+      <h1 class="auth-title">Bentornato!</h1>
+      <p class="auth-sub">Accedi al tuo account AccessLIS</p>
+    </div>
+    <div class="auth-body">
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" id="login-email" class="auth-input" placeholder="es. nome@email.it" autocomplete="username"/>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <div class="auth-input-wrap">
+          <input type="password" id="login-pwd" class="auth-input" placeholder="La tua password" autocomplete="current-password"/>
+          <button class="auth-eye" onclick="togglePwd('login-pwd',this)">👁</button>
+        </div>
+      </div>
+      <p id="login-error" class="auth-error"></p>
+      <button class="auth-btn" onclick="doLogin()">Accedi</button>
+      <button class="auth-link" onclick="mostraResetPwd()">Password dimenticata?</button>
+      <div class="auth-divider"><span>oppure</span></div>
+      <button class="auth-btn auth-btn-outline" onclick="mostraRegistrazione()">Crea un nuovo account</button>
+    </div>
+  </div>
+
+  <!-- REGISTRAZIONE -->
+  <div id="view-registrazione" style="display:none;">
+    <div class="auth-header">
+      <div style="font-size:56px;margin-bottom:8px;">🤟</div>
+      <h1 class="auth-title">Crea account</h1>
+      <p class="auth-sub">Inizia il tuo percorso con AccessLIS</p>
+    </div>
+    <div class="auth-body">
+      <div class="auth-field">
+        <label class="auth-label">Nome</label>
+        <input type="text" id="reg-nome" class="auth-input" placeholder="Il tuo nome"/>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <input type="email" id="reg-email" class="auth-input" placeholder="es. nome@email.it" autocomplete="username"/>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <div class="auth-input-wrap">
+          <input type="password" id="reg-pwd" class="auth-input" placeholder="Crea una password" autocomplete="new-password" oninput="validaPwd(this.value)"/>
+          <button class="auth-eye" onclick="togglePwd('reg-pwd',this)">👁</button>
+        </div>
+        <div class="pwd-requisiti">
+          <p class="pwd-req" id="req-len">○ Massimo 12 caratteri</p>
+          <p class="pwd-req" id="req-mai">○ Almeno 1 lettera maiuscola</p>
+          <p class="pwd-req" id="req-num">○ Almeno 1 numero</p>
+          <p class="pwd-req" id="req-spe">○ Almeno 1 carattere speciale (!@#$...)</p>
+        </div>
+      </div>
+      <p id="reg-error" class="auth-error"></p>
+      <button class="auth-btn" onclick="doRegistrazione()">Registrati</button>
+      <button class="auth-link" onclick="mostraLogin()">Hai già un account? Accedi</button>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD -->
+  <div id="view-reset" style="display:none;">
+    <div class="auth-header">
+      <div style="font-size:56px;margin-bottom:8px;">🔑</div>
+      <h1 class="auth-title">Nuova password</h1>
+      <p class="auth-sub">Scegli una nuova password per il tuo account</p>
+    </div>
+    <div class="auth-body">
+      <div class="auth-field">
+        <label class="auth-label">Nuova password</label>
+        <div class="auth-input-wrap">
+          <input type="password" id="reset-pwd1" class="auth-input" placeholder="Nuova password" oninput="validaPwd(this.value,'reset')"/>
+          <button class="auth-eye" onclick="togglePwd('reset-pwd1',this)">👁</button>
+        </div>
+        <div class="pwd-requisiti">
+          <p class="pwd-req" id="reset-req-len">○ Massimo 12 caratteri</p>
+          <p class="pwd-req" id="reset-req-mai">○ Almeno 1 lettera maiuscola</p>
+          <p class="pwd-req" id="reset-req-num">○ Almeno 1 numero</p>
+          <p class="pwd-req" id="reset-req-spe">○ Almeno 1 carattere speciale (!@#$...)</p>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Conferma password</label>
+        <div class="auth-input-wrap">
+          <input type="password" id="reset-pwd2" class="auth-input" placeholder="Ripeti la password"/>
+          <button class="auth-eye" onclick="togglePwd('reset-pwd2',this)">👁</button>
+        </div>
+      </div>
+      <p id="reset-error" class="auth-error"></p>
+      <button class="auth-btn" onclick="doResetPwd()">Salva nuova password</button>
+      <button class="auth-link" onclick="mostraLogin()">← Torna al login</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== -->
+<!-- APP PRINCIPALE (appare solo dopo login) -->
+<!-- ===================== -->
+<div id="app" style="display:none;">
+
+  <!-- HOME -->
+  <div class="screen" id="screen-home">
+    <div class="home-header">
+      <div class="home-logo">
+        <img src="logo.png" alt="AccessLIS" style="height:36px; width:36px; object-fit:contain; border-radius:8px;" />
+        <span>AccessLIS</span>
+      </div>
+      <div class="home-avatar" id="home-avatar-img" onclick="navigate('profilo')" style="cursor:pointer; overflow:hidden; padding:0;">D</div>
+    </div>
+    <div class="home-banner">
+      <p class="banner-label">LEZIONE DI OGGI</p>
+      <h2 class="banner-title" id="frase-giorno">Impara i nuovi segni oggi!</h2>
+      <p class="banner-sub">Continua il tuo percorso</p>
+      <button class="banner-btn" onclick="navigate('moduli')">Inizia ora →</button>
+    </div>
+    <div class="content">
+      <p class="section-label">I TUOI MODULI</p>
+      <div id="home-moduli"></div>
+      <p class="section-label">ESPLORA</p>
+      <div class="esplora-grid" style="grid-template-columns:1fr;">
+        <div class="esplora-card arancio" onclick="navigate('cultura')">
+          <div class="esplora-icon">💡</div>
+          <p class="esplora-label">Cultura LIS</p>
+          <p class="esplora-sub">Scopri di più</p>
+        </div>
+      </div>
+
+      <p class="section-label">LA TUA STREAK</p>
+      <div class="streak-card" id="streak-home-card">
+        <div class="streak-fire">🔥</div>
+        <div class="streak-info">
+          <p class="streak-num" id="streak-home-num">0</p>
+          <p class="streak-label">giorni di fila</p>
+        </div>
+        <div class="streak-settimana" id="streak-settimana"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETTAGLIO PAROLA -->
+  <div class="screen" id="screen-parola">
+    <div class="topbar">
+      <button class="back-btn" onclick="tornaDizionario()">← Dizionario</button>
+      <h1 class="topbar-title" id="parola-titolo"></h1>
+      <p class="topbar-sub" id="parola-cat-label"></p>
+    </div>
+    <div class="parola-video-full">
+      <video id="parola-video-el" controls playsinline preload="none" muted style="display:none;width:100%;height:100%;object-fit:cover;"></video>
+      <div id="parola-placeholder" class="no-video-placeholder" style="display:none;">
+        <span style="font-size:48px;">🤟</span>
+        <p>Video in arrivo</p>
+      </div>
+    </div>
+    <div class="content" style="padding-top:16px;">
+      <p style="font-size:14px;color:#6B7280;text-align:center;">Guarda il video per imparare il segno corretto</p>
+    </div>
+  </div>
+
+  <!-- DIZIONARIO -->
+  <div class="screen" id="screen-dizionario">
+    <div class="topbar">
+      <h1 class="topbar-title">Dizionario LIS</h1>
+    </div>
+    <div class="content">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/>
+        </svg>
+        <input type="text" id="search-input" placeholder="Cerca una parola..." oninput="filtraParole()"/>
+      </div>
+      <div class="chips">
+        <div class="chip active" onclick="filtraCategoria('saluti',this)">Saluti</div>
+        <div class="chip" onclick="filtraCategoria('famiglia',this)">Famiglia</div>
+        <div class="chip" onclick="filtraCategoria('casa',this)">Casa</div>
+        <div class="chip" onclick="filtraCategoria('scuola',this)">Scuola</div>
+        <div class="chip" onclick="filtraCategoria('lavoro',this)">Lavoro</div>
+        <div class="chip" onclick="filtraCategoria('emozioni',this)">Emozioni</div>
+      </div>
+      <div id="parole-list"></div>
+    </div>
+  </div>
+
+  <!-- MODULI -->
+  <div class="screen" id="screen-moduli">
+    <div class="topbar">
+      <h1 class="topbar-title">Moduli</h1>
+      <p class="topbar-sub">Il tuo percorso di apprendimento</p>
+    </div>
+    <div class="content" id="moduli-list"></div>
+  </div>
+
+  <!-- LEZIONI -->
+  <div class="screen" id="screen-lezioni">
+    <div class="topbar">
+      <button class="back-btn" onclick="tornaModuli()">← Moduli</button>
+      <h1 class="topbar-title" id="lezioni-titolo"></h1>
+      <p class="topbar-sub" id="lezioni-desc"></p>
+    </div>
+    <div id="lezioni-list"></div>
+  </div>
+
+  <!-- CONTENUTO LEZIONE -->
+  <div class="screen" id="screen-contenuto">
+    <div class="topbar">
+      <button class="back-btn" onclick="tornaLezioni()">← Lezioni</button>
+      <h1 class="topbar-title" id="contenuto-titolo"></h1>
+      <p class="topbar-sub" id="contenuto-modulo"></p>
+    </div>
+    <div id="contenuto-list"></div>
+    <div class="bottom-action">
+      <button class="btn-completa" onclick="completaLezione()">✓ Lezione completata</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="topbar">
+      <h1 class="topbar-title">Quiz</h1>
+      <p class="topbar-sub">Metti alla prova le tue conoscenze</p>
+    </div>
+    <div class="content">
+      <div class="quiz-modalita">
+        <button class="btn-modalita active" onclick="setModalita('multipla',this)">Scelta multipla</button>
+        <button class="btn-modalita" onclick="setModalita('verofals',this)">Vero o Falso</button>
+      </div>
+      <div id="quiz-area"></div>
+    </div>
+  </div>
+
+  <!-- PROGRESSI -->
+  <div class="screen" id="screen-progressi">
+    <div class="topbar">
+      <h1 class="topbar-title">I miei progressi</h1>
+    </div>
+    <div class="content">
+      <div id="progressi-content"></div>
+    </div>
+  </div>
+
+  <!-- CULTURA LIS -->
+  <div class="screen" id="screen-cultura">
+    <div class="topbar">
+      <h1 class="topbar-title">Cultura LIS</h1>
+      <p class="topbar-sub">Scopri il mondo della comunità sorda</p>
+    </div>
+    <div class="content">
+      <div class="cultura-card">
+        <div class="cultura-icon">🤟</div>
+        <h3 class="cultura-titolo">Cos'è la LIS</h3>
+        <p class="cultura-testo">La Lingua dei Segni Italiana è la lingua naturale delle persone sorde in Italia. Ha una grammatica e una struttura proprie, indipendenti dall'italiano.</p>
+      </div>
+      <div class="cultura-card">
+        <div class="cultura-icon">🇮🇹</div>
+        <h3 class="cultura-titolo">La comunità sorda in Italia</h3>
+        <p class="cultura-testo">In Italia vivono circa 60.000 persone sorde segnanti. La LIS è stata riconosciuta ufficialmente dallo Stato italiano nel 2021.</p>
+      </div>
+      <div class="cultura-card">
+        <div class="cultura-icon">🏫</div>
+        <h3 class="cultura-titolo">LIS e scuola</h3>
+        <p class="cultura-testo">Imparare la LIS aiuta insegnanti e compagni a comunicare meglio con gli studenti sordi, rendendo la classe più inclusiva per tutti.</p>
+      </div>
+      <div class="cultura-card">
+        <div class="cultura-icon">👶</div>
+        <h3 class="cultura-titolo">Lo sapevi?</h3>
+        <p class="cultura-testo">Il 95% dei bambini sordi nasce in famiglie udenti. Imparare la LIS insieme rafforza il legame familiare e abbatte le barriere comunicative.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILO LOGGATO -->
+  <div class="screen" id="screen-profilo">
+    <div class="profilo-header">
+      <div class="profilo-avatar-wrap">
+        <!-- Avatar: mostra immagine se caricata, altrimenti iniziale -->
+        <div class="profilo-avatar" id="profilo-avatar-iniziale"
+             onclick="triggerAvatarUpload()"
+             style="cursor:pointer; position:relative; overflow:hidden;">
+          <img id="profilo-avatar-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%; position:absolute; top:0; left:0;" />
+          <span id="profilo-avatar-lettera">D</span>
+        </div>
+        <div class="profilo-avatar-edit" onclick="triggerAvatarUpload()" title="Cambia foto">✏️</div>
+        <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="caricaAvatar(event)" />
+      </div>
+      <h2 class="profilo-nome" id="profilo-nome-display">Utente</h2>
+      <p class="profilo-email" id="profilo-email-display"></p>
+      <div class="profilo-badge-livello">
+        <span>⭐</span>
+        <span id="profilo-livello-label">Livello 1 — Principiante</span>
+      </div>
+    </div>
+
+    <div class="content" style="margin-top:-20px;">
+
+      <!-- STATS: Quiz, Moduli, Parole, Giorni -->
+      <div class="profilo-stats-row" style="gap:0; flex-wrap:wrap;">
+        <div class="profilo-stat" style="padding: 6px 16px; min-width:25%;">
+          <p class="profilo-stat-num" id="ps-quiz">0</p>
+          <p class="profilo-stat-label">Quiz fatti</p>
+        </div>
+        <div class="profilo-stat" style="padding: 6px 16px; min-width:25%; border-left:1px solid #F3F4F6;">
+          <p class="profilo-stat-num" id="ps-moduli">0/6</p>
+          <p class="profilo-stat-label">Moduli</p>
+        </div>
+        <div class="profilo-stat" style="padding: 6px 16px; min-width:25%; border-left:1px solid #F3F4F6;">
+          <p class="profilo-stat-num" id="ps-parole">0</p>
+          <p class="profilo-stat-label">Parole</p>
+        </div>
+        <div class="profilo-stat" style="padding: 6px 16px; min-width:25%; border-left:1px solid #F3F4F6;">
+          <p class="profilo-stat-num" id="ps-giorni">🔥0</p>
+          <p class="profilo-stat-label">Giorni</p>
+        </div>
+      </div>
+
+      <!-- ANELLO AVANZAMENTO TOTALE -->
+      <p class="section-label" style="margin-top:20px;">AVANZAMENTO TOTALE</p>
+      <div style="display:flex; align-items:center; justify-content:center; padding:8px 0 20px;">
+        <div style="position:relative; width:140px; height:140px;">
+          <svg viewBox="0 0 120 120" width="140" height="140" style="transform:rotate(-90deg);">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#F3F4F6" stroke-width="10"/>
+            <circle id="profilo-ring-fill" cx="60" cy="60" r="50" fill="none"
+              stroke="#F59E0B" stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="314"
+              stroke-dashoffset="314"
+              style="transition: stroke-dashoffset 0.9s cubic-bezier(.4,0,.2,1), stroke 0.6s ease;"/>
+          </svg>
+          <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <span id="profilo-ring-perc" style="font-size:26px; font-weight:800; color:#1a1a2e; line-height:1;">0%</span>
+            <span style="font-size:11px; color:#9CA3AF; font-weight:600; margin-top:2px;">completato</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPOSTAZIONI -->
+      <p class="section-label" style="margin-top:18px;">IMPOSTAZIONI</p>
+      <div class="profilo-menu-card">
+        <div class="profilo-menu-item" onclick="toggleNotifiche()">
+          <span class="profilo-menu-icon">🔔</span>
+          <span class="profilo-menu-label">Notifiche giornaliere</span>
+          <div class="profilo-toggle" id="toggle-notifiche"><div class="profilo-toggle-thumb"></div></div>
+        </div>
+        <div class="profilo-menu-sep"></div>
+        <div class="profilo-menu-item" onclick="toggleDark()">
+          <span class="profilo-menu-icon">🌙</span>
+          <span class="profilo-menu-label">Modalità scura</span>
+          <div class="profilo-toggle" id="toggle-dark"><div class="profilo-toggle-thumb"></div></div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <p class="section-label">ACCOUNT</p>
+      <div class="profilo-menu-card">
+        <div class="profilo-menu-item" onclick="apriModificaProfilo()">
+          <span class="profilo-menu-icon">👤</span>
+          <span class="profilo-menu-label">Modifica profilo</span>
+          <span class="profilo-menu-arrow">›</span>
+        </div>
+        <div class="profilo-menu-sep"></div>
+        <div class="profilo-menu-item" onclick="apriPrivacy()">
+          <span class="profilo-menu-icon">🔒</span>
+          <span class="profilo-menu-label">Privacy e dati</span>
+          <span class="profilo-menu-arrow">›</span>
+        </div>
+        <div class="profilo-menu-sep"></div>
+        <div class="profilo-menu-item" onclick="apriValutazione()">
+          <span class="profilo-menu-icon">⭐</span>
+          <span class="profilo-menu-label">Valuta l'app</span>
+          <span class="profilo-menu-arrow">›</span>
+        </div>
+        <div class="profilo-menu-sep"></div>
+        <div class="profilo-menu-item">
+          <span class="profilo-menu-icon">ℹ️</span>
+          <span class="profilo-menu-label">Versione app</span>
+          <span class="profilo-menu-arrow" style="color:#9CA3AF;font-size:13px;">1.0.0</span>
+        </div>
+      </div>
+
+      <button class="profilo-logout-btn" onclick="doLogout()">Esci dall'account</button>
+      <p style="text-align:center;font-size:11px;color:#D1D5DB;margin-top:8px;margin-bottom:16px;">AccessLIS · Fatto con 🤟 in Italia</p>
+    </div>
+  </div>
+
+  <!-- MODAL: MODIFICA PROFILO -->
+  <div id="modal-modifica-profilo" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9000; overflow-y:auto;">
+    <div style="background:#fff; min-height:100%; max-width:480px; margin:0 auto; padding:0 0 40px;">
+      <div style="background:linear-gradient(135deg,#1E6FD9,#0C447C); padding:20px 20px 28px; display:flex; align-items:center; gap:12px;">
+        <button onclick="chiudiModale('modal-modifica-profilo')" style="background:rgba(255,255,255,0.2); border:none; color:#fff; font-size:18px; width:36px; height:36px; border-radius:50%; cursor:pointer;">←</button>
+        <h2 style="color:#fff; font-size:18px; font-weight:800;">Modifica profilo</h2>
+      </div>
+      <!-- Avatar grande cliccabile -->
+      <div style="text-align:center; margin-top:-28px; margin-bottom:20px;">
+        <div onclick="triggerAvatarUpload()" style="width:80px; height:80px; border-radius:50%; background:#E0EAFA; border:4px solid #fff; box-shadow:0 4px 16px rgba(0,0,0,.12); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; position:relative; overflow:hidden; font-size:30px; font-weight:800; color:#1E6FD9;">
+          <img id="mp-avatar-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; border-radius:50%;" />
+          <span id="mp-avatar-lettera">D</span>
+        </div>
+        <p style="font-size:12px; color:#1E6FD9; font-weight:600; margin-top:8px; cursor:pointer;" onclick="triggerAvatarUpload()">Cambia foto profilo</p>
+      </div>
+      <div style="padding:0 20px; display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#9CA3AF; letter-spacing:.08em; display:block; margin-bottom:6px;">NOME</label>
+          <input id="mp-nome" type="text" placeholder="Il tuo nome" style="width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid #E5E7EB; font-size:15px; background:#F9FAFB; outline:none;" onfocus="this.style.borderColor='#1E6FD9'" onblur="this.style.borderColor='#E5E7EB'" />
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#9CA3AF; letter-spacing:.08em; display:block; margin-bottom:6px;">EMAIL</label>
+          <input id="mp-email" type="email" placeholder="La tua email" style="width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid #E5E7EB; font-size:15px; background:#F9FAFB; outline:none; color:#9CA3AF;" readonly />
+        </div>
+        <div>
+          <label style="font-size:11px; font-weight:700; color:#9CA3AF; letter-spacing:.08em; display:block; margin-bottom:6px;">NUOVA PASSWORD</label>
+          <div style="position:relative;">
+            <input id="mp-pwd" type="password" placeholder="Lascia vuoto per non cambiare" style="width:100%; padding:13px 44px 13px 14px; border-radius:12px; border:1.5px solid #E5E7EB; font-size:15px; background:#F9FAFB; outline:none;" onfocus="this.style.borderColor='#1E6FD9'" onblur="this.style.borderColor='#E5E7EB'" />
+            <button onclick="togglePwd('mp-pwd',this)" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; font-size:16px; cursor:pointer; color:#9CA3AF;">👁</button>
+          </div>
+        </div>
+        <p id="mp-error" style="color:#DC2626; font-size:13px; font-weight:600; min-height:18px;"></p>
+        <button onclick="salvaModificaProfilo()" style="width:100%; padding:15px; border-radius:14px; background:linear-gradient(135deg,#1E6FD9,#0C447C); color:#fff; font-size:15px; font-weight:700; border:none; cursor:pointer;">Salva modifiche</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PRIVACY E DATI -->
+  <div id="modal-privacy" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:9000; overflow-y:auto;">
+    <div style="background:#fff; min-height:100%; max-width:480px; margin:0 auto; padding:0 0 40px;">
+      <div style="background:linear-gradient(135deg,#1E6FD9,#0C447C); padding:20px 20px 28px; display:flex; align-items:center; gap:12px;">
+        <button onclick="chiudiModale('modal-privacy')" style="background:rgba(255,255,255,0.2); border:none; color:#fff; font-size:18px; width:36px; height:36px; border-radius:50%; cursor:pointer;">←</button>
+        <h2 style="color:#fff; font-size:18px; font-weight:800;">Privacy e dati</h2>
+      </div>
+      <div style="padding:24px 20px; display:flex; flex-direction:column; gap:14px;">
+        <div style="background:#F0F7FF; border-radius:14px; padding:16px; display:flex; gap:12px; align-items:flex-start;">
+          <span style="font-size:22px;">🔐</span>
+          <div>
+            <p style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:4px;">I tuoi dati sono al sicuro</p>
+            <p style="font-size:13px; color:#6B7280; line-height:1.5;">AccessLIS salva i tuoi dati solo sul tuo dispositivo. Non condividiamo nulla con terze parti.</p>
+          </div>
+        </div>
+        <div style="background:#fff; border-radius:14px; border:0.5px solid #E5E7EB; overflow:hidden;">
+          <div style="padding:14px 16px; border-bottom:0.5px solid #F3F4F6;">
+            <p style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:2px;">Dati salvati in locale</p>
+            <p style="font-size:12px; color:#9CA3AF;">Progressi, preferenze e sessione utente sono memorizzati sul dispositivo.</p>
+          </div>
+          <div style="padding:14px 16px; border-bottom:0.5px solid #F3F4F6;">
+            <p style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:2px;">Nessun tracciamento</p>
+            <p style="font-size:12px; color:#9CA3AF;">Non utilizziamo cookie di tracciamento o analytics di terze parti.</p>
+          </div>
+          <div style="padding:14px 16px;">
+            <p style="font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:2px;">Foto profilo</p>
+            <p style="font-size:12px; color:#9CA3AF;">Le immagini caricate vengono salvate solo localmente sul tuo dispositivo.</p>
+          </div>
+        </div>
+        <button onclick="cancellaIDati()" style="width:100%; padding:14px; border-radius:14px; background:#FEE2E2; color:#DC2626; font-size:14px; font-weight:700; border:none; cursor:pointer;">🗑️ Cancella tutti i dati</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VALUTA APP -->
+  <div id="modal-valutazione" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.55); z-index:9000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:24px; padding:32px 24px 28px; max-width:320px; width:90%; margin:0 auto; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,.18); animation:modalPop .3s ease;">
+      <div style="font-size:48px; margin-bottom:12px;">⭐</div>
+      <h2 style="font-size:20px; font-weight:800; color:#1a1a2e; margin-bottom:6px;">Ti piace AccessLIS?</h2>
+      <p style="font-size:14px; color:#6B7280; margin-bottom:20px;">Lascia la tua valutazione e aiutaci a migliorare!</p>
+      <!-- Stelle -->
+      <div id="stelle-container" style="display:flex; justify-content:center; gap:10px; margin-bottom:20px; font-size:36px;">
+        <span class="stella" data-v="1" onclick="selezionaStella(1)" style="cursor:pointer; transition:transform .15s;">☆</span>
+        <span class="stella" data-v="2" onclick="selezionaStella(2)" style="cursor:pointer; transition:transform .15s;">☆</span>
+        <span class="stella" data-v="3" onclick="selezionaStella(3)" style="cursor:pointer; transition:transform .15s;">☆</span>
+        <span class="stella" data-v="4" onclick="selezionaStella(4)" style="cursor:pointer; transition:transform .15s;">☆</span>
+        <span class="stella" data-v="5" onclick="selezionaStella(5)" style="cursor:pointer; transition:transform .15s;">☆</span>
+      </div>
+      <textarea id="feedback-testo" placeholder="Scrivi un commento (opzionale)..." style="width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid #E5E7EB; font-size:14px; resize:none; height:80px; outline:none; font-family:inherit; margin-bottom:14px;" onfocus="this.style.borderColor='#1E6FD9'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
+      <button onclick="inviaFeedback()" style="width:100%; padding:14px; border-radius:14px; background:linear-gradient(135deg,#1E6FD9,#0C447C); color:#fff; font-size:15px; font-weight:700; border:none; cursor:pointer; margin-bottom:10px;">Invia feedback</button>
+      <button onclick="chiudiModale('modal-valutazione')" style="background:none; border:none; color:#9CA3AF; font-size:13px; font-weight:600; cursor:pointer;">Annulla</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bnav-item active" id="nav-home" onclick="navigate('home')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3 12L12 4l9 8v9a1 1 0 01-1 1h-5v-5h-6v5H4a1 1 0 01-1-1v-9z"/>
+    </svg>
+    <span>Home</span>
+  </div>
+  <div class="bnav-item" id="nav-dizionario" onclick="navigate('dizionario')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="4" y="3" width="12" height="17" rx="2"/>
+      <rect x="16" y="5" width="4" height="13" rx="1" opacity="0.5"/>
+    </svg>
+    <span>Dizionario</span>
+  </div>
+  <div class="bnav-item" id="nav-quiz" onclick="navigate('quiz')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="3" y="3" width="18" height="18" rx="3"/>
+      <circle cx="12" cy="10" r="3" fill="#fff"/>
+      <rect x="10" y="14" width="4" height="2" rx="1" fill="#fff"/>
+      <rect x="11" y="16" width="2" height="3" rx="1" fill="#fff"/>
+    </svg>
+    <span>Quiz</span>
+  </div>
+  <div class="bnav-item" id="nav-profilo" onclick="navigate('profilo')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    <span>Profilo</span>
+  </div>
+</nav>
+
+<!-- ===================== -->
+<!-- MODAL: QUIZ IN CORSO -->
+<!-- ===================== -->
+<div id="modal-quiz-in-corso" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.55); z-index:99999; align-items:center; justify-content:center;">
+  <div style="
+    background:#fff;
+    border-radius:24px;
+    padding:32px 24px 24px;
+    max-width:300px;
+    width:88%;
+    margin:0 auto;
+    text-align:center;
+    box-shadow:0 8px 40px rgba(0,0,0,0.22);
+    animation: modalPop 0.3s ease;
+  ">
+    <div style="font-size:48px; margin-bottom:12px;">⚠️</div>
+    <h2 style="font-size:18px; font-weight:800; color:#1a1a2e; margin-bottom:8px;">Quiz in corso!</h2>
+    <p style="font-size:14px; color:#6B7280; line-height:1.6; margin-bottom:24px;">Se esci ora perderai i tuoi progressi nel quiz. Vuoi uscire lo stesso?</p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button id="btn-quiz-esci" style="
+        width:100%; padding:14px; border-radius:14px;
+        background:linear-gradient(135deg,#DC2626,#991B1B);
+        color:#fff; font-size:15px; font-weight:700; border:none; cursor:pointer;">
+        Esci dal quiz
+      </button>
+      <button onclick="chiudiModalQuizInCorso()" style="
+        width:100%; padding:14px; border-radius:14px;
+        background:#F3F4F6; color:#374151;
+        font-size:15px; font-weight:700; border:none; cursor:pointer;">
+        Resta nel quiz
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- MODAL COMPLETAMENTO MODULO -->
+<!-- ===================== -->
+<div id="modal-completamento" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.55); z-index:99999; align-items:center; justify-content:center;">
+  <div style="
+    background:#fff;
+    border-radius:24px;
+    padding:32px 24px 24px;
+    max-width:320px;
+    width:90%;
+    margin:0 auto;
+    text-align:center;
+    box-shadow:0 8px 40px rgba(0,0,0,0.18);
+    animation: modalPop 0.3s ease;
+  ">
+    <div id="modal-icon" style="font-size:56px; margin-bottom:12px;">🎉</div>
+    <h2 id="modal-titolo" style="font-size:20px; font-weight:800; color:#1a1a2e; margin-bottom:8px;"></h2>
+    <p id="modal-testo" style="font-size:14px; color:#6B7280; line-height:1.6; margin-bottom:20px;"></p>
+    <div id="modal-badge-box" style="display:none; background:#FEF9C3; border-radius:12px; padding:10px 14px; margin-bottom:20px;">
+      <p style="font-size:13px; color:#92400E; font-weight:600;" id="modal-badge-testo"></p>
+    </div>
+    <button onclick="chiudiModalCompletamento()" style="
+      width:100%;
+      padding:15px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#1E6FD9,#0C447C);
+      color:#fff;
+      font-size:16px;
+      font-weight:700;
+      border:none;
+      cursor:pointer;
+      letter-spacing:0.3px;
+    ">✅ &nbsp;OK, continua!</button>
+  </div>
+</div>
+
+<style>
+@keyframes modalPop {
+  from { transform:scale(0.82); opacity:0; }
+  to   { transform:scale(1);    opacity:1; }
+}
+</style>
+
+<script src="app.js"></script>
+</body>
+</html>
